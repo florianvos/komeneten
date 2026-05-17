@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'dinner',
 ]
 
 MIDDLEWARE = [
@@ -115,3 +116,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+LOGIN_URL = '/login/'
+LOGIN_REDIRECT_URL = '/'
+
+from django.contrib.messages import constants as message_constants  # noqa: E402
+MESSAGE_TAGS = {message_constants.ERROR: 'danger'}

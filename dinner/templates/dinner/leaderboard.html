@@ -1,0 +1,141 @@
+{% extends "dinner/base.html" %}
+{% block title %}Klassement &mdash; Komen Eten 2026{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+  <h1 class="mb-0" style="font-size:1.6rem;">Klassement</h1>
+  <span class="badge rounded-pill" style="background:var(--ke-warm);font-size:.85rem;font-family:system-ui,sans-serif;padding:.4rem .9rem;">
+    Zomer 2026
+  </span>
+</div>
+
+<!-- Podium cards -->
+<div class="row g-3 mb-5">
+  {% for r in rankings %}
+  <div class="col-md-4">
+    <div class="card h-100 text-center {% if r.rank == 1 %}border-warning{% endif %}"
+         {% if r.rank == 1 %}style="border-width:2px !important;"{% endif %}>
+      <div class="card-body py-4">
+
+        <div style="font-size:2.5rem;line-height:1;margin-bottom:.5rem;">
+          {% if r.rank == 1 %}
+            <i class="bi bi-trophy-fill rank-1"></i>
+          {% elif r.rank == 2 %}
+            <i class="bi bi-trophy rank-2"></i>
+          {% else %}
+            <i class="bi bi-award rank-3"></i>
+          {% endif %}
+        </div>
+
+        <div class="fw-bold mb-1" style="font-size:1.15rem;color:var(--ke-brown);">
+          {{ r.couple.name }}
+        </div>
+        {% if r.couple == couple %}
+        <div class="mb-2">
+          <span class="badge" style="background:var(--ke-gold);color:#2d1f14;font-family:system-ui,sans-serif;font-size:.75rem;">Jullie</span>
+        </div>
+        {% endif %}
+
+        {% if r.grand_total > 0 %}
+        <div style="font-family:system-ui,sans-serif;">
+          <div class="score-badge mb-2" style="font-size:1.8rem;">{{ r.grand_total }}</div>
+          <div style="font-size:.8rem;color:#888;">punten totaal</div>
+        </div>
+        {% else %}
+        <div style="font-family:system-ui,sans-serif;color:#aaa;font-size:.9rem;">
+          <em>Nog geen scores</em>
+        </div>
+        {% endif %}
+
+      </div>
+      <div class="card-footer py-2" style="background:var(--ke-cream);font-family:system-ui,sans-serif;font-size:.8rem;color:#888;">
+        {{ r.num_dinners }} diner{{ r.num_dinners|pluralize:"s" }}
+        &bull;
+        {{ r.score_count }} beoordeling{{ r.score_count|pluralize:"en" }}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Detailed breakdown table -->
+<div class="card">
+  <div class="card-header py-2 px-3">
+    <h2 class="mb-0" style="font-size:1.1rem;">Gedetailleerd overzicht</h2>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0" style="font-family:system-ui,sans-serif;font-size:.9rem;">
+      <thead style="background:var(--ke-cream);">
+        <tr>
+          <th>#</th>
+          <th>Koppel</th>
+          <th class="text-center">Het eten</th>
+          <th class="text-center">Sfeer</th>
+          <th class="text-center">Inkleding</th>
+          <th class="text-center fw-bold">Totaal</th>
+          <th class="text-center">Gem. / avond</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for r in rankings %}
+        <tr {% if r.couple == couple %}style="background:#fffbf0;"{% endif %}>
+          <td>
+            {% if r.rank == 1 %}
+              <i class="bi bi-trophy-fill rank-1"></i>
+            {% elif r.rank == 2 %}
+              <i class="bi bi-trophy rank-2"></i>
+            {% else %}
+              <i class="bi bi-award rank-3"></i>
+            {% endif %}
+            <span class="ms-1">{{ r.rank }}</span>
+          </td>
+          <td class="fw-semibold" style="color:var(--ke-brown);">
+            {{ r.couple.name }}
+            {% if r.couple == couple %}
+            <span class="badge ms-1" style="background:var(--ke-gold);color:#2d1f14;font-size:.7rem;">Jullie</span>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            {% if r.food_total > 0 %}
+              <span class="score-badge">{{ r.food_total }}</span>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            {% if r.atm_total > 0 %}
+              <span class="score-badge">{{ r.atm_total }}</span>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td class="text-center">
+            {% if r.deco_total > 0 %}
+              <span class="score-badge">{{ r.deco_total }}</span>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td class="text-center fw-bold">
+            {% if r.grand_total > 0 %}
+              <span class="score-badge" style="background:var(--ke-warm);color:#fff;font-size:1rem;">
+                {{ r.grand_total }}
+              </span>
+            {% else %}
+              <span class="text-muted">—</span>
+            {% endif %}
+          </td>
+          <td class="text-center text-muted">
+            {% if r.avg_per_score > 0 %}{{ r.avg_per_score }}{% else %}—{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<p class="text-muted mt-3" style="font-family:system-ui,sans-serif;font-size:.8rem;">
+  Scores zijn enkel zichtbaar voor afgelopen avonden. Individuele scores zijn anoniem.
+</p>
+{% endblock %}

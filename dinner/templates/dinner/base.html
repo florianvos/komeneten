@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Komen Eten 2026{% endblock %}</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <style>
+    :root {
+      --ke-brown:  #6B3A2A;
+      --ke-warm:   #C05A2B;
+      --ke-gold:   #E8A84C;
+      --ke-cream:  #FBF5EC;
+      --ke-card:   #FFFDF9;
+      --ke-border: #E8D5BC;
+    }
+
+    body {
+      background-color: var(--ke-cream);
+      font-family: Georgia, 'Times New Roman', serif;
+      color: #2d1f14;
+    }
+
+    /* Navbar */
+    .navbar {
+      background-color: var(--ke-brown) !important;
+    }
+    .navbar-brand {
+      color: #fff !important;
+      font-size: 1.3rem;
+      letter-spacing: .5px;
+    }
+    .nav-link {
+      color: rgba(255,255,255,.85) !important;
+    }
+    .nav-link:hover, .nav-link.active {
+      color: var(--ke-gold) !important;
+    }
+    .navbar-toggler-icon {
+      filter: invert(1);
+    }
+
+    /* Cards */
+    .card {
+      border: 1px solid var(--ke-border);
+      border-radius: 10px;
+      background-color: var(--ke-card);
+      box-shadow: 0 2px 10px rgba(107,58,42,.08);
+    }
+    .card-header {
+      background-color: var(--ke-brown);
+      color: #fff;
+      border-radius: 9px 9px 0 0 !important;
+    }
+
+    /* Headings */
+    h1, h2, h3, .page-title {
+      color: var(--ke-brown);
+    }
+
+    /* Buttons */
+    .btn-primary {
+      background-color: var(--ke-warm);
+      border-color: var(--ke-warm);
+    }
+    .btn-primary:hover {
+      background-color: var(--ke-brown);
+      border-color: var(--ke-brown);
+    }
+    .btn-outline-primary {
+      color: var(--ke-warm);
+      border-color: var(--ke-warm);
+    }
+    .btn-outline-primary:hover {
+      background-color: var(--ke-warm);
+      border-color: var(--ke-warm);
+    }
+    .btn-warning {
+      background-color: var(--ke-gold);
+      border-color: var(--ke-gold);
+      color: #2d1f14;
+    }
+
+    /* Calendar grid */
+    .cal-grid { width: 100%; border-collapse: collapse; }
+    .cal-grid th {
+      text-align: center;
+      font-size: .75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--ke-brown);
+      padding: 4px;
+      font-family: system-ui, sans-serif;
+    }
+    .cal-cell {
+      text-align: center;
+      vertical-align: top;
+      padding: 3px;
+      height: 64px;
+      width: calc(100% / 7);
+    }
+    .cal-day {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100%;
+      border-radius: 8px;
+      padding: 4px 2px;
+      font-size: .85rem;
+      font-family: system-ui, sans-serif;
+    }
+    .cal-day.empty { opacity: 0; pointer-events: none; }
+    .cal-day.past  { background-color: #f0ebe4; }
+    .cal-day.my-dinner { background-color: #fff3e0; border: 2px solid var(--ke-gold); }
+    .cal-day.other-dinner { background-color: #eef3e8; border: 2px solid #6aaa5b; }
+    .cal-day.free { background-color: #fff; border: 1px solid var(--ke-border); }
+    .cal-day .day-num {
+      font-weight: 700;
+      font-size: .95rem;
+      line-height: 1.1;
+    }
+    .cal-day .host-badge {
+      font-size: .65rem;
+      margin-top: 2px;
+      line-height: 1.1;
+      text-align: center;
+    }
+    .cal-day .cal-btn {
+      font-size: .6rem;
+      padding: 1px 5px;
+      margin-top: 3px;
+      white-space: nowrap;
+    }
+
+    /* Score display */
+    .score-bar-label { font-family: system-ui, sans-serif; font-size: .9rem; }
+    .score-badge {
+      display: inline-block;
+      min-width: 2.2rem;
+      text-align: center;
+      background: var(--ke-gold);
+      color: #2d1f14;
+      border-radius: 6px;
+      font-weight: 700;
+      padding: 2px 8px;
+      font-family: system-ui, sans-serif;
+    }
+
+    /* Leaderboard */
+    .rank-1 { color: #C49A00; }
+    .rank-2 { color: #888; }
+    .rank-3 { color: #b06020; }
+
+    /* Forms */
+    .form-label { font-weight: 600; color: var(--ke-brown); font-family: system-ui, sans-serif; }
+    .form-control:focus, .form-select:focus {
+      border-color: var(--ke-warm);
+      box-shadow: 0 0 0 .2rem rgba(192,90,43,.2);
+    }
+
+    /* Dividers */
+    hr { border-color: var(--ke-border); }
+  </style>
+</head>
+<body>
+
+{% if user.is_authenticated %}
+<nav class="navbar navbar-expand-md sticky-top">
+  <div class="container">
+    <a class="navbar-brand fw-bold" href="{% url 'home' %}">Komen Eten &rsaquo; 2026</a>
+    <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navMenu">
+      <ul class="navbar-nav ms-auto align-items-md-center gap-1">
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'calendar' %}active{% endif %}"
+             href="{% url 'calendar' %}">
+            <i class="bi bi-calendar3 me-1"></i>Kalender
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'leaderboard' %}active{% endif %}"
+             href="{% url 'leaderboard' %}">
+            <i class="bi bi-trophy me-1"></i>Klassement
+          </a>
+        </li>
+        <li class="nav-item ms-md-2">
+          <a class="nav-link" href="{% url 'logout' %}" style="opacity:.75;">
+            <i class="bi bi-box-arrow-right me-1"></i>
+            {% if user.couple %}{{ user.couple.name }}{% else %}{{ user.username }}{% endif %}
+          </a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+{% endif %}
+
+<div class="container py-4" style="max-width: 900px;">
+  {% for message in messages %}
+  <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show" role="alert">
+    {{ message }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  </div>
+  {% endfor %}
+
+  {% block content %}{% endblock %}
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

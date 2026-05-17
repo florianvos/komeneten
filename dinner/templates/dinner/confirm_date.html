@@ -1,0 +1,60 @@
+{% extends "dinner/base.html" %}
+{% block title %}Datum bevestigen &mdash; Komen Eten 2026{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+  <h1 class="mb-0" style="font-size:1.6rem;">Datum bevestigen</h1>
+  <a href="{% url 'calendar' %}" class="btn btn-outline-secondary btn-sm">
+    <i class="bi bi-arrow-left me-1"></i>Terug naar kalender
+  </a>
+</div>
+
+<p style="font-family:system-ui,sans-serif;" class="mb-4">
+  Hieronder staan de datums waarop <strong>alle koppels beschikbaar zijn</strong>.
+  Kies een datum en wijs een gastheer aan om het diner te bevestigen.
+</p>
+
+{% if proposed_dates %}
+  {% for proposal in proposed_dates %}
+  <div class="card mb-3">
+    <div class="card-body">
+      <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+        <div>
+          <h5 class="mb-1" style="color:var(--ke-brown);">
+            <i class="bi bi-calendar-check me-2"></i>
+            {{ proposal.date|date:"l j F Y" }}
+          </h5>
+          <div style="font-family:system-ui,sans-serif;font-size:.88rem;color:#555;">
+            Beschikbaar:
+            {% for c in proposal.couples %}
+              <span class="badge bg-success me-1">{{ c.name }}</span>
+            {% endfor %}
+          </div>
+        </div>
+        <form method="post" action="{% url 'confirm_date' %}" class="d-flex align-items-center gap-2 flex-wrap">
+          {% csrf_token %}
+          <input type="hidden" name="date" value="{{ proposal.date|date:'Y-m-d' }}">
+          <select name="host" class="form-select form-select-sm" style="min-width:160px;" required>
+            <option value="">--- Gastheer ---</option>
+            {% for c in couples %}
+            <option value="{{ c.pk }}">{{ c.name }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn btn-warning btn-sm fw-semibold"
+            onclick="return confirm('Diner bevestigen op {{ proposal.date|date:\'j F\' }}?')">
+            <i class="bi bi-check2-circle me-1"></i>Bevestigen
+          </button>
+        </form>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+{% else %}
+  <div class="alert alert-info" style="font-family:system-ui,sans-serif;">
+    <i class="bi bi-info-circle me-2"></i>
+    Er zijn nog geen datums waarop alle koppels beschikbaar zijn.
+    Vraag de koppels om hun beschikbare datums in te vullen op de kalender.
+  </div>
+{% endif %}
+
+{% endblock %}

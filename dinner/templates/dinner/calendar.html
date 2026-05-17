@@ -1,0 +1,151 @@
+{% extends "dinner/base.html" %}
+{% block title %}Kalender &mdash; Komen Eten 2026{% endblock %}
+
+{% block content %}
+<style>
+  .cal-cell { height: auto; min-height: 80px; }
+  .cal-day { min-height: 76px; gap: 2px; }
+  .cal-day.proposed { background-color: #fff8e1; border: 2px solid #E8A84C; }
+  .cal-day.i-available { background-color: #e8f5e9; border: 2px solid #66bb6a; }
+  .cal-day.partial { background-color: #fafafa; border: 1px dashed #bbb; }
+  .avail-dots { display: flex; gap: 3px; justify-content: center; flex-wrap: wrap; margin-top: 1px; }
+  .avail-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: #66bb6a; display: inline-block; flex-shrink: 0;
+  }
+  .avail-dot.empty { background: #ddd; }
+  .avail-label { font-size: .58rem; color: #555; line-height: 1.1; text-align: center; }
+  .proposed-star { font-size: .7rem; color: #b8860b; font-weight: 700; }
+</style>
+
+<div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+  <h1 class="mb-0" style="font-size:1.6rem;">Kalender {{ year }}</h1>
+  <div class="d-flex align-items-center gap-2 flex-wrap">
+    {% if user.is_superuser and proposed_count %}
+    <a href="{% url 'confirm_date' %}" class="btn btn-warning btn-sm fw-semibold">
+      <i class="bi bi-check2-circle me-1"></i>Bevestig datum
+    </a>
+    {% endif %}
+    <span class="badge rounded-pill" style="background:var(--ke-warm);font-size:.85rem;font-family:system-ui,sans-serif;padding:.4rem .9rem;">
+      {% if couple %}{{ couple.name }}{% else %}{{ user.username }}{% endif %}
+    </span>
+  </div>
+</div>
+
+<!-- Legend -->
+<div class="d-flex flex-wrap gap-3 mb-4" style="font-family:system-ui,sans-serif;font-size:.82rem;">
+  <span><span class="d-inline-block rounded me-1"
+    style="width:14px;height:14px;background:#fff8e1;border:2px solid #E8A84C;vertical-align:middle;"></span>
+    Iedereen beschikbaar</span>
+  <span><span class="d-inline-block rounded me-1"
+    style="width:14px;height:14px;background:#e8f5e9;border:2px solid #66bb6a;vertical-align:middle;"></span>
+    Ik ben beschikbaar</span>
+  <span><span class="d-inline-block rounded me-1"
+    style="width:14px;height:14px;background:#fff3e0;border:2px solid #E8A84C;vertical-align:middle;"></span>
+    Jullie diner</span>
+  <span><span class="d-inline-block rounded me-1"
+    style="width:14px;height:14px;background:#eef3e8;border:2px solid #6aaa5b;vertical-align:middle;"></span>
+    Ander koppel</span>
+  <span><span class="d-inline-block rounded me-1"
+    style="width:14px;height:14px;background:#f0ebe4;vertical-align:middle;"></span>
+    Verleden</span>
+</div>
+
+{% if user.is_superuser %}
+<div class="alert alert-warning py-2 mb-3" style="font-family:system-ui,sans-serif;font-size:.88rem;">
+  <i class="bi bi-star-fill me-1"></i>
+  Je bent ingelogd als supergebruiker. Klik op
+  <a href="{% url 'confirm_date' %}" class="fw-semibold">Bevestig datum</a>
+  om een voorgestelde datum te bevestigen als diner.
+</div>
+{% endif %}
+
+{% for month_name, month_grid in month_data %}
+<div class="card mb-4">
+  <div class="card-header py-2 px-3">
+    <h2 class="mb-0" style="font-size:1.2rem;">{{ month_name }}</h2>
+  </div>
+  <div class="card-body p-2 p-md-3">
+    <table class="cal-grid">
+      <thead>
+        <tr>
+          {% for wd in weekdays %}
+          <th>{{ wd }}</th>
+          {% endfor %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for week in month_grid %}
+        <tr>
+          {% for cell in week %}
+          <td class="cal-cell">
+            {% if cell.in_month %}
+              <div class="cal-day
+                {% if cell.is_past %}past
+                {% elif cell.dinner %}{% if cell.is_my_dinner %}my-dinner{% else %}other-dinner{% endif %}
+                {% elif cell.is_proposed %}proposed
+                {% elif cell.i_am_available %}i-available
+                {% elif cell.avail_count > 0 %}partial
+                {% else %}free
+                {% endif %}">
+
+                {% if cell.dinner %}
+                  <a href="{% url 'dinner_detail' cell.dinner.pk %}" class="day-num text-decoration-none"
+                     style="color:inherit;">{{ cell.date.day }}</a>
+                {% else %}
+                  <span class="day-num">{{ cell.date.day }}</span>
+                {% endif %}
+
+                {% if cell.dinner %}
+                  <span class="host-badge fw-semibold"
+                    style="color:{% if cell.is_my_dinner %}#8a5a00{% else %}#3a6a28{% endif %}">
+                    {{ cell.dinner.host.name|truncatechars:10 }}
+                  </span>
+                {% elif not cell.is_past %}
+                  {% if cell.is_proposed %}
+                    <span class="proposed-star">&#9733; Iedereen!</span>
+                  {% elif cell.avail_count > 0 %}
+                    <div class="avail-dots">
+                      {% for n in cell.available_names %}
+                        <span class="avail-dot" title="{{ n }}"></span>
+                      {% endfor %}
+                      {% for i in cell.empty_dots %}
+                        <span class="avail-dot empty"></span>
+                      {% endfor %}
+                    </div>
+                    <span class="avail-label">{{ cell.avail_count }}/{{ cell.total_couples }}</span>
+                  {% endif %}
+
+                  {% if not cell.dinner %}
+                    <form method="post" action="{% url 'calendar' %}" style="margin:0;">
+                      {% csrf_token %}
+                      <input type="hidden" name="date" value="{{ cell.date|date:'Y-m-d' }}">
+                      {% if cell.i_am_available %}
+                        <button type="submit" class="btn btn-sm btn-success cal-btn"
+                          title="Klik om beschikbaarheid te verwijderen">
+                          &#10003;
+                        </button>
+                      {% else %}
+                        <button type="submit" class="btn btn-sm btn-outline-secondary cal-btn">
+                          +
+                        </button>
+                      {% endif %}
+                    </form>
+                  {% endif %}
+                {% endif %}
+
+              </div>
+            {% else %}
+              <div class="cal-day empty">&nbsp;</div>
+            {% endif %}
+          </td>
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endfor %}
+
+{% endblock %}

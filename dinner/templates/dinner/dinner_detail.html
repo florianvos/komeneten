@@ -1,0 +1,152 @@
+{% extends "dinner/base.html" %}
+{% block title %}{{ dinner }} &mdash; Komen Eten 2026{% endblock %}
+
+{% block content %}
+<a href="{% url 'calendar' %}" class="btn btn-sm btn-outline-secondary mb-3">
+  <i class="bi bi-arrow-left me-1"></i>Kalender
+</a>
+
+<div class="card mb-4">
+  <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center">
+    <h1 class="mb-0" style="font-size:1.3rem;">
+      {{ dinner.date|date:"l j F Y" }}
+    </h1>
+    {% if is_past %}
+    <span class="badge bg-secondary" style="font-family:system-ui,sans-serif;">Afgelopen</span>
+    {% else %}
+    <span class="badge" style="background:var(--ke-gold);color:#2d1f14;font-family:system-ui,sans-serif;">Aankomend</span>
+    {% endif %}
+  </div>
+  <div class="card-body">
+    <p class="mb-0" style="font-family:system-ui,sans-serif;">
+      <strong>Gastheer:</strong>
+      <span style="color:var(--ke-warm);font-weight:600;">{{ dinner.host.name }}</span>
+      {% if is_host %}<span class="badge ms-2" style="background:var(--ke-gold);color:#2d1f14;">Jullie diner</span>{% endif %}
+    </p>
+  </div>
+</div>
+
+<!-- Menu Teaser -->
+<div class="card mb-4">
+  <div class="card-header py-2 px-3 d-flex justify-content-between align-items-center">
+    <h2 class="mb-0" style="font-size:1.1rem;">Menuteaser</h2>
+    {% if is_host %}
+    <a href="{% url 'menu_teaser' dinner.pk %}" class="btn btn-sm btn-warning">
+      <i class="bi bi-pencil me-1"></i>{% if teaser %}Bewerken{% else %}Toevoegen{% endif %}
+    </a>
+    {% endif %}
+  </div>
+  <div class="card-body" style="font-family:system-ui,sans-serif;">
+    {% if teaser %}
+      <div class="row g-3">
+        <div class="col-md-4">
+          <div class="p-3 rounded" style="background:var(--ke-cream);border:1px solid var(--ke-border);">
+            <div class="fw-bold mb-1" style="color:var(--ke-brown);">Voorgerecht</div>
+            <div>{% if teaser.starter_hint %}{{ teaser.starter_hint }}{% else %}<em class="text-muted">Nog geen hint</em>{% endif %}</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 rounded" style="background:var(--ke-cream);border:1px solid var(--ke-border);">
+            <div class="fw-bold mb-1" style="color:var(--ke-brown);">Hoofdgerecht</div>
+            <div>{% if teaser.main_hint %}{{ teaser.main_hint }}{% else %}<em class="text-muted">Nog geen hint</em>{% endif %}</div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="p-3 rounded" style="background:var(--ke-cream);border:1px solid var(--ke-border);">
+            <div class="fw-bold mb-1" style="color:var(--ke-brown);">Dessert</div>
+            <div>{% if teaser.dessert_hint %}{{ teaser.dessert_hint }}{% else %}<em class="text-muted">Nog geen hint</em>{% endif %}</div>
+          </div>
+        </div>
+      </div>
+    {% else %}
+      <p class="text-muted mb-0"><em>De gastheren hebben nog geen menuteaser toegevoegd.</em></p>
+    {% endif %}
+  </div>
+</div>
+
+<!-- Scores section -->
+{% if is_past %}
+<div class="card mb-4">
+  <div class="card-header py-2 px-3">
+    <h2 class="mb-0" style="font-size:1.1rem;">Scores</h2>
+  </div>
+  <div class="card-body" style="font-family:system-ui,sans-serif;">
+
+    {% if aggregate %}
+    <p class="text-muted mb-3" style="font-size:.85rem;">
+      Gemiddelde op basis van {{ aggregate.count }} beoordeling{{ aggregate.count|pluralize:"en" }}
+      (anoniem)
+    </p>
+    <div class="row g-3 mb-3">
+      <div class="col-sm-4">
+        <div class="p-3 text-center rounded" style="background:var(--ke-cream);border:1px solid var(--ke-border);">
+          <div style="font-size:.8rem;font-weight:600;color:var(--ke-brown);">Het eten</div>
+          <div class="score-badge mt-1" style="font-size:1.3rem;">{{ aggregate.food }}</div>
+          <div style="font-size:.75rem;color:#888;">/ 10</div>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="p-3 text-center rounded" style="background:var(--ke-cream);border:1px solid var(--ke-border);">
+          <div style="font-size:.8rem;font-weight:600;color:var(--ke-brown);">Sfeer &amp; gezelligheid</div>
+          <div class="score-badge mt-1" style="font-size:1.3rem;">{{ aggregate.atmosphere }}</div>
+          <div style="font-size:.75rem;color:#888;">/ 10</div>
+        </div>
+      </div>
+      <div class="col-sm-4">
+        <div class="p-3 text-center rounded" style="background:var(--ke-cream);border:1px solid var(--ke-border);">
+          <div style="font-size:.8rem;font-weight:600;color:var(--ke-brown);">De inkleding</div>
+          <div class="score-badge mt-1" style="font-size:1.3rem;">{{ aggregate.decoration }}</div>
+          <div style="font-size:.75rem;color:#888;">/ 10</div>
+        </div>
+      </div>
+    </div>
+    <div class="text-center">
+      <span style="font-size:.9rem;color:#666;">Totaal gemiddeld:</span>
+      <span class="score-badge ms-2" style="font-size:1.1rem;">{{ aggregate.total }} / 30</span>
+    </div>
+    {% else %}
+    <p class="text-muted mb-0"><em>Nog geen scores ingediend.</em></p>
+    {% endif %}
+
+    {% if can_score %}
+    <hr>
+    <h3 style="font-size:1rem;color:var(--ke-brown);">
+      {% if existing_score %}Jouw score aanpassen{% else %}Jouw score indienen{% endif %}
+    </h3>
+    <p class="text-muted" style="font-size:.85rem;">
+      Jouw score is anoniem &mdash; de gastheren zien alleen het gemiddelde.
+    </p>
+    <form method="post">
+      {% csrf_token %}
+      {% for field in score_form %}
+      <div class="mb-3">
+        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+        <div class="text-danger" style="font-size:.85rem;">{{ field.errors }}</div>
+        {% endif %}
+      </div>
+      {% endfor %}
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check2-circle me-1"></i>
+        {% if existing_score %}Score opslaan{% else %}Score indienen{% endif %}
+      </button>
+    </form>
+    {% elif is_host and is_past %}
+    <hr>
+    <p class="text-muted mb-0" style="font-size:.85rem;">
+      <em>Als gastheer kan je jezelf niet beoordelen.</em>
+    </p>
+    {% endif %}
+
+  </div>
+</div>
+{% else %}
+<div class="card mb-4">
+  <div class="card-body text-muted" style="font-family:system-ui,sans-serif;">
+    <em>Scores worden beschikbaar na de avond ({{ dinner.date|date:"j F Y" }}).</em>
+  </div>
+</div>
+{% endif %}
+
+{% endblock %}
