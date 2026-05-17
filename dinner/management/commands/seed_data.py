@@ -7,14 +7,14 @@ from dinner.models import Couple, DinnerDate
 
 COUPLES = [
     ('florian_afra',  'Florian & Afra',  'florian'),
-    ('philipe_lena',  'Philipe & Lena',  'philipe'),
+    ('philippe_lena', 'Philippe & Lena', 'philippe'),
     ('brecht_ragna',  'Brecht & Ragna',  'brecht'),
 ]
 
 DINNERS = [
     ('florian_afra',  date(2026, 3, 1)),
     ('brecht_ragna',  date(2026, 7, 1)),
-    ('philipe_lena',  date(2026, 8, 1)),
+    ('philippe_lena', date(2026, 8, 1)),
 ]
 
 
