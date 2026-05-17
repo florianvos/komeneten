@@ -1,0 +1,124 @@
+{% extends "dinner/base.html" %}
+{% load static %}
+{% block title %}Komen Eten 2026{% endblock %}
+
+{% block content %}
+<style>
+  .invite-card {
+    border: 1px solid var(--ke-border);
+    border-radius: 12px;
+    background: var(--ke-card);
+    box-shadow: 0 2px 12px rgba(107,58,42,.09);
+  }
+  .invite-photo {
+    width: 88px; height: 88px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--ke-gold);
+    flex-shrink: 0;
+  }
+  .invite-text {
+    font-family: Georgia, serif;
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: #3a2010;
+    white-space: pre-wrap;
+  }
+  .invite-empty {
+    font-family: Georgia, serif;
+    font-style: italic;
+    color: #bbb;
+    font-size: .95rem;
+  }
+  .divider-ornament {
+    text-align: center;
+    color: var(--ke-gold);
+    font-size: 1.3rem;
+    letter-spacing: .5rem;
+    margin: .5rem 0;
+  }
+</style>
+
+<div class="text-center mb-5 mt-2">
+  <div class="divider-ornament">&#10022; &#10022; &#10022;</div>
+  <h1 style="font-size:2rem;letter-spacing:.5px;">Komen Eten &rsaquo; 2026</h1>
+  <p class="text-muted" style="font-family:system-ui,sans-serif;font-size:.95rem;margin-top:-.25rem;">
+    Drie koppels. Drie diners. Eén onvergetelijke zomer.
+  </p>
+  <div class="divider-ornament">&#10022; &#10022; &#10022;</div>
+</div>
+
+{% for c in couples %}
+<div class="invite-card mb-4 p-4 p-md-5">
+  <div class="d-flex align-items-center gap-4 mb-4">
+    <img src="{% static c.photo %}" alt="{{ c.name }}" class="invite-photo">
+    <div>
+      <h4 class="mb-0" style="color:var(--ke-brown);font-size:1.2rem;">{{ c.name }}</h4>
+      <div class="mt-1" style="font-family:system-ui,sans-serif;font-size:.88rem;">
+        {% with dinners=c.hosted_dinners.all %}
+          {% if dinners %}{% for dinner in dinners %}
+            <span style="display:inline-flex;align-items:center;gap:.4rem;background:#fffbeb;border:1px solid #E8A84C;border-radius:6px;padding:.2rem .6rem;color:#8a5a00;font-weight:600;">
+              <i class="bi bi-calendar-check"></i>{{ dinner.date|date:"j F Y" }}
+            </span>
+          {% endfor %}{% else %}
+            <span style="color:#bbb;font-style:italic;">Nog geen datum bevestigd</span>
+          {% endif %}
+        {% endwith %}
+      </div>
+    </div>
+  </div>
+
+  <hr style="border-color:var(--ke-border);margin-top:0;margin-bottom:0;">
+
+  <div class="d-flex align-items-center justify-content-between px-1 py-3">
+    <h5 class="mb-0" style="font-size:1rem;color:var(--ke-brown);">
+      <i class="bi bi-envelope me-2"></i>Uitnodiging
+      {% if c.invitation and c.invitation.text %}
+        <small class="text-muted fw-normal ms-2" style="font-size:.78rem;font-family:system-ui,sans-serif;">
+          Bijgewerkt op {{ c.invitation.updated_at|date:"j F" }}
+        </small>
+      {% endif %}
+    </h5>
+    {% if c == couple %}
+    <a href="{% url 'edit_invitation' %}" class="btn btn-sm btn-outline-primary">
+      <i class="bi bi-pencil me-1"></i>{% if c.invitation and c.invitation.text %}Bewerk{% else %}Schrijf{% endif %}
+    </a>
+    {% endif %}
+  </div>
+
+  <hr style="border-color:var(--ke-border);margin-top:0;margin-bottom:1.25rem;">
+
+  {% if c.invitation and c.invitation.text %}
+    <p class="invite-text mb-0">{{ c.invitation.text }}</p>
+  {% else %}
+    <p class="invite-empty mb-0">
+      {% if c == couple %}Jullie hebben nog geen uitnodiging geschreven. Klik op "Schrijf" om te beginnen.
+      {% else %}Nog geen uitnodiging.{% endif %}
+    </p>
+  {% endif %}
+
+  {% if c == couple %}
+    {% for dinner in c.hosted_dinners.all %}
+    <hr style="border-color:var(--ke-border);margin-top:1.5rem;margin-bottom:1.25rem;">
+    <div class="d-flex align-items-center justify-content-between mb-3">
+      <h5 class="mb-0" style="font-size:1rem;color:var(--ke-brown);">
+        <i class="bi bi-card-text me-2"></i>Menu — {{ dinner.date|date:"j F Y" }}
+      </h5>
+      <a href="{% url 'menu_teaser' dinner.pk %}" class="btn btn-sm btn-warning">
+        <i class="bi bi-pencil me-1"></i>
+        {% if dinner.teaser %}Bewerk{% else %}Toevoegen{% endif %}
+      </a>
+    </div>
+    {% with t=dinner.teaser %}
+    {% if t and t.text %}
+      <p style="font-family:Georgia,serif;font-size:1rem;line-height:1.7;white-space:pre-wrap;margin:0;">{{ t.text }}</p>
+    {% else %}
+      <p class="invite-empty mb-0">Nog geen menu toegevoegd.</p>
+    {% endif %}
+    {% endwith %}
+    {% endfor %}
+  {% endif %}
+</div>
+{% endfor %}
+
+{% endblock %}

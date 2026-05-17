@@ -1,27 +1,29 @@
 {% extends "dinner/base.html" %}
+{% load static %}
 {% block title %}Kalender &mdash; Komen Eten 2026{% endblock %}
 
 {% block content %}
 <style>
   .cal-cell { height: auto; min-height: 80px; }
   .cal-day { min-height: 76px; gap: 2px; }
-  .cal-day.proposed { background-color: #fff8e1; border: 2px solid #E8A84C; }
-  .cal-day.i-available { background-color: #e8f5e9; border: 2px solid #66bb6a; }
-  .cal-day.partial { background-color: #fafafa; border: 1px dashed #bbb; }
+  .cal-day.confirmed    { background-color: #fffbeb; border: 2px solid #E8A84C; }
+  .cal-day.proposed     { background-color: #e8f5e9; border: 2px solid #43a047; }
+  .cal-day.i-available  { background-color: #e3f0ff; border: 2px solid #4285f4; }
+  .cal-day.partial      { background-color: #f5f8ff; border: 1px dashed #90b8f0; }
   .avail-dots { display: flex; gap: 3px; justify-content: center; flex-wrap: wrap; margin-top: 1px; }
   .avail-dot {
     width: 8px; height: 8px; border-radius: 50%;
-    background: #66bb6a; display: inline-block; flex-shrink: 0;
+    background: #4285f4; display: inline-block; flex-shrink: 0;
   }
   .avail-dot.empty { background: #ddd; }
   .avail-label { font-size: .58rem; color: #555; line-height: 1.1; text-align: center; }
-  .proposed-star { font-size: .7rem; color: #b8860b; font-weight: 700; }
+  .proposed-star { font-size: .7rem; color: #2e7d32; font-weight: 700; }
 </style>
 
 <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
   <h1 class="mb-0" style="font-size:1.6rem;">Kalender {{ year }}</h1>
   <div class="d-flex align-items-center gap-2 flex-wrap">
-    {% if user.is_superuser and proposed_count %}
+    {% if user.username == 'florian_afra' and proposed_count %}
     <a href="{% url 'confirm_date' %}" class="btn btn-warning btn-sm fw-semibold">
       <i class="bi bi-check2-circle me-1"></i>Bevestig datum
     </a>
@@ -35,27 +37,23 @@
 <!-- Legend -->
 <div class="d-flex flex-wrap gap-3 mb-4" style="font-family:system-ui,sans-serif;font-size:.82rem;">
   <span><span class="d-inline-block rounded me-1"
-    style="width:14px;height:14px;background:#fff8e1;border:2px solid #E8A84C;vertical-align:middle;"></span>
-    Iedereen beschikbaar</span>
-  <span><span class="d-inline-block rounded me-1"
-    style="width:14px;height:14px;background:#e8f5e9;border:2px solid #66bb6a;vertical-align:middle;"></span>
+    style="width:14px;height:14px;background:#e3f0ff;border:2px solid #4285f4;vertical-align:middle;"></span>
     Ik ben beschikbaar</span>
   <span><span class="d-inline-block rounded me-1"
-    style="width:14px;height:14px;background:#fff3e0;border:2px solid #E8A84C;vertical-align:middle;"></span>
-    Jullie diner</span>
+    style="width:14px;height:14px;background:#e8f5e9;border:2px solid #43a047;vertical-align:middle;"></span>
+    Iedereen beschikbaar</span>
   <span><span class="d-inline-block rounded me-1"
-    style="width:14px;height:14px;background:#eef3e8;border:2px solid #6aaa5b;vertical-align:middle;"></span>
-    Ander koppel</span>
+    style="width:14px;height:14px;background:#fffbeb;border:2px solid #E8A84C;vertical-align:middle;"></span>
+    Diner bevestigd</span>
   <span><span class="d-inline-block rounded me-1"
     style="width:14px;height:14px;background:#f0ebe4;vertical-align:middle;"></span>
     Verleden</span>
 </div>
 
-{% if user.is_superuser %}
+{% if user.username == 'florian_afra' %}
 <div class="alert alert-warning py-2 mb-3" style="font-family:system-ui,sans-serif;font-size:.88rem;">
   <i class="bi bi-star-fill me-1"></i>
-  Je bent ingelogd als supergebruiker. Klik op
-  <a href="{% url 'confirm_date' %}" class="fw-semibold">Bevestig datum</a>
+  Klik op <a href="{% url 'confirm_date' %}" class="fw-semibold">Bevestig datum</a>
   om een voorgestelde datum te bevestigen als diner.
 </div>
 {% endif %}
@@ -82,7 +80,7 @@
             {% if cell.in_month %}
               <div class="cal-day
                 {% if cell.is_past %}past
-                {% elif cell.dinner %}{% if cell.is_my_dinner %}my-dinner{% else %}other-dinner{% endif %}
+                {% elif cell.dinner %}confirmed
                 {% elif cell.is_proposed %}proposed
                 {% elif cell.i_am_available %}i-available
                 {% elif cell.avail_count > 0 %}partial
@@ -97,8 +95,9 @@
                 {% endif %}
 
                 {% if cell.dinner %}
-                  <span class="host-badge fw-semibold"
-                    style="color:{% if cell.is_my_dinner %}#8a5a00{% else %}#3a6a28{% endif %}">
+                  <img src="{% static cell.dinner.host.photo %}" alt="{{ cell.dinner.host.name }}"
+                    style="width:26px;height:26px;border-radius:50%;object-fit:cover;margin-top:2px;">
+                  <span class="host-badge fw-semibold" style="color:#8a5a00;">
                     {{ cell.dinner.host.name|truncatechars:10 }}
                   </span>
                 {% elif not cell.is_past %}

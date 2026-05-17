@@ -7,8 +7,8 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, Sum
 from django.shortcuts import get_object_or_404, redirect, render
 
-from .forms import MenuTeaserForm, ScoreForm
-from .models import Availability, Couple, DinnerDate, MenuTeaser, Score
+from .forms import InvitationForm, MenuTeaserForm, ScoreForm
+from .models import Availability, Couple, DinnerDate, Invitation, MenuTeaser, Score
 
 COMPETITION_YEAR = 2026
 COMPETITION_MONTHS = [7, 8]
@@ -33,7 +33,36 @@ def logout_view(request):
 
 @login_required
 def home(request):
-    return redirect('calendar')
+    try:
+        couple = request.user.couple
+    except Exception:
+        couple = None
+    couples = Couple.objects.select_related('user').prefetch_related('invitation', 'hosted_dinners__teaser').all()
+    return render(request, 'dinner/home.html', {'couple': couple, 'couples': couples})
+
+
+@login_required
+def edit_invitation_view(request):
+    try:
+        couple = request.user.couple
+    except Exception:
+        messages.error(request, 'Geen koppelprofiel gevonden.')
+        return redirect('home')
+
+    invitation = getattr(couple, 'invitation', None)
+
+    if request.method == 'POST':
+        form = InvitationForm(request.POST, instance=invitation)
+        if form.is_valid():
+            inv = form.save(commit=False)
+            inv.couple = couple
+            inv.save()
+            messages.success(request, 'Uitnodiging opgeslagen!')
+            return redirect('home')
+    else:
+        form = InvitationForm(instance=invitation)
+
+    return render(request, 'dinner/edit_invitation.html', {'form': form, 'couple': couple})
 
 
 def _build_month_grid(year, month, dinner_dates, availability_map, my_available_dates, total_couples, couple, today):
@@ -143,8 +172,8 @@ def calendar_view(request):
 
 @login_required
 def confirm_date_view(request):
-    if not request.user.is_superuser:
-        messages.error(request, 'Alleen de supergebruiker kan een datum bevestigen.')
+    if request.user.username != 'florian_afra':
+        messages.error(request, 'Alleen Florian & Afra kunnen een datum bevestigen.')
         return redirect('calendar')
 
     total_couples = Couple.objects.count()
@@ -269,7 +298,7 @@ def menu_teaser_view(request, pk):
             t.dinner_date = dinner
             t.save()
             messages.success(request, 'Menuteaser opgeslagen!')
-            return redirect('dinner_detail', pk=pk)
+            return redirect('home')
     else:
         form = MenuTeaserForm(instance=teaser)
 
@@ -278,13 +307,21 @@ def menu_teaser_view(request, pk):
 
 @login_required
 def leaderboard(request):
-    couples = Couple.objects.all()
+    all_couples = Couple.objects.all()
+    try:
+        current_couple = request.user.couple
+    except Exception:
+        current_couple = None
     today = date.today()
     rankings = []
 
-    for couple in couples:
-        dinners = DinnerDate.objects.filter(host=couple, date__lte=today)
-        scores = Score.objects.filter(dinner_date__in=dinners)
+    already_scored_ids = set(
+        Score.objects.filter(scorer=current_couple).values_list('dinner_date_id', flat=True)
+    ) if current_couple else set()
+
+    for couple in all_couples:
+        past_dinners = list(DinnerDate.objects.filter(host=couple, date__lte=today))
+        scores = Score.objects.filter(dinner_date__in=past_dinners)
         count = scores.count()
 
         if count:
@@ -302,20 +339,26 @@ def leaderboard(request):
             food_total = atm_total = deco_total = grand_total = 0
             avg_per_score = 0
 
+        scorable = [
+            d for d in past_dinners
+            if couple != current_couple and d.pk not in already_scored_ids
+        ]
+
         rankings.append({
             'couple': couple,
             'num_dinners': DinnerDate.objects.filter(host=couple).count(),
-            'num_dinners_scored': dinners.count(),
+            'num_dinners_scored': len(past_dinners),
             'score_count': count,
             'food_total': food_total,
             'atm_total': atm_total,
             'deco_total': deco_total,
             'grand_total': grand_total,
             'avg_per_score': avg_per_score,
+            'scorable_dinners': scorable,
         })
 
     rankings.sort(key=lambda x: x['grand_total'], reverse=True)
     for i, r in enumerate(rankings):
         r['rank'] = i + 1
 
-    return render(request, 'dinner/leaderboard.html', {'rankings': rankings, 'couple': request.user.couple})
+    return render(request, 'dinner/leaderboard.html', {'rankings': rankings, 'couple': current_couple})

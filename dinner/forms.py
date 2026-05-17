@@ -1,30 +1,34 @@
 from django import forms
-from .models import MenuTeaser, Score
+from .models import Invitation, MenuTeaser, Score
 
 SCORE_CHOICES = [('', '--- Kies ---')] + [(i, f'{i} / 10') for i in range(1, 11)]
+
+
+class InvitationForm(forms.ModelForm):
+    class Meta:
+        model = Invitation
+        fields = ['text']
+        labels = {'text': 'Jullie uitnodiging'}
+        widgets = {
+            'text': forms.Textarea(attrs={
+                'rows': 6,
+                'class': 'form-control',
+                'placeholder': 'Schrijf hier jullie originele uitnodiging...',
+                'style': 'font-family:Georgia,serif;font-size:1rem;',
+            }),
+        }
 
 
 class MenuTeaserForm(forms.ModelForm):
     class Meta:
         model = MenuTeaser
-        fields = ['starter_hint', 'main_hint', 'dessert_hint']
-        labels = {
-            'starter_hint': 'Voorgerecht',
-            'main_hint': 'Hoofdgerecht',
-            'dessert_hint': 'Dessert',
-        }
+        fields = ['text']
+        labels = {'text': 'Menu'}
         widgets = {
-            'starter_hint': forms.Textarea(attrs={
-                'rows': 3, 'class': 'form-control',
-                'placeholder': 'Geef een cryptische hint over het voorgerecht...',
-            }),
-            'main_hint': forms.Textarea(attrs={
-                'rows': 3, 'class': 'form-control',
-                'placeholder': 'Geef een cryptische hint over het hoofdgerecht...',
-            }),
-            'dessert_hint': forms.Textarea(attrs={
-                'rows': 3, 'class': 'form-control',
-                'placeholder': 'Geef een cryptische hint over het dessert...',
+            'text': forms.Textarea(attrs={
+                'rows': 6, 'class': 'form-control',
+                'placeholder': 'Beschrijf jullie menu...',
+                'style': 'font-family:Georgia,serif;font-size:1rem;',
             }),
         }
 

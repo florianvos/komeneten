@@ -1,4 +1,5 @@
 {% extends "dinner/base.html" %}
+{% load static %}
 {% block title %}Klassement &mdash; Komen Eten 2026{% endblock %}
 
 {% block content %}
@@ -17,14 +18,15 @@
          {% if r.rank == 1 %}style="border-width:2px !important;"{% endif %}>
       <div class="card-body py-4">
 
-        <div style="font-size:2.5rem;line-height:1;margin-bottom:.5rem;">
-          {% if r.rank == 1 %}
-            <i class="bi bi-trophy-fill rank-1"></i>
-          {% elif r.rank == 2 %}
-            <i class="bi bi-trophy rank-2"></i>
-          {% else %}
-            <i class="bi bi-award rank-3"></i>
-          {% endif %}
+        <div style="position:relative;display:inline-block;margin-bottom:.75rem;">
+          <img src="{% static r.couple.photo %}" alt="{{ r.couple.name }}"
+            style="width:90px;height:90px;border-radius:50%;object-fit:cover;
+                   border:3px solid {% if r.rank == 1 %}#E8A84C{% elif r.rank == 2 %}#aaa{% else %}#b06020{% endif %};">
+          <span style="position:absolute;bottom:0;right:-4px;font-size:1.4rem;line-height:1;">
+            {% if r.rank == 1 %}<i class="bi bi-trophy-fill rank-1"></i>
+            {% elif r.rank == 2 %}<i class="bi bi-trophy rank-2"></i>
+            {% else %}<i class="bi bi-award rank-3"></i>{% endif %}
+          </span>
         </div>
 
         <div class="fw-bold mb-1" style="font-size:1.15rem;color:var(--ke-brown);">
@@ -46,6 +48,13 @@
           <em>Nog geen scores</em>
         </div>
         {% endif %}
+
+        {% for dinner in r.scorable_dinners %}
+        <a href="{% url 'dinner_detail' dinner.pk %}"
+           class="btn btn-sm btn-warning mt-2 fw-semibold">
+          <i class="bi bi-star me-1"></i>Beoordeel {{ dinner.date|date:"j F" }}
+        </a>
+        {% endfor %}
 
       </div>
       <div class="card-footer py-2" style="background:var(--ke-cream);font-family:system-ui,sans-serif;font-size:.8rem;color:#888;">
@@ -90,10 +99,18 @@
             <span class="ms-1">{{ r.rank }}</span>
           </td>
           <td class="fw-semibold" style="color:var(--ke-brown);">
+            <img src="{% static r.couple.photo %}" alt="{{ r.couple.name }}"
+              style="width:28px;height:28px;border-radius:50%;object-fit:cover;vertical-align:middle;margin-right:6px;">
             {{ r.couple.name }}
             {% if r.couple == couple %}
             <span class="badge ms-1" style="background:var(--ke-gold);color:#2d1f14;font-size:.7rem;">Jullie</span>
             {% endif %}
+            {% for dinner in r.scorable_dinners %}
+            <a href="{% url 'dinner_detail' dinner.pk %}"
+               class="btn btn-sm btn-warning ms-2 py-0" style="font-size:.75rem;">
+              <i class="bi bi-star me-1"></i>Beoordeel
+            </a>
+            {% endfor %}
           </td>
           <td class="text-center">
             {% if r.food_total > 0 %}

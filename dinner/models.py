@@ -7,6 +7,10 @@ class Couple(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='couple')
     name = models.CharField(max_length=100)
 
+    @property
+    def photo(self):
+        return f"{self.user.username}.jpg"
+
     def __str__(self):
         return self.name
 
@@ -28,13 +32,20 @@ class DinnerDate(models.Model):
 
 class MenuTeaser(models.Model):
     dinner_date = models.OneToOneField(DinnerDate, on_delete=models.CASCADE, related_name='teaser')
-    starter_hint = models.TextField(blank=True)
-    main_hint = models.TextField(blank=True)
-    dessert_hint = models.TextField(blank=True)
+    text = models.TextField(blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"Teaser voor {self.dinner_date}"
+
+
+class Invitation(models.Model):
+    couple = models.OneToOneField(Couple, on_delete=models.CASCADE, related_name='invitation')
+    text = models.TextField(blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Uitnodiging van {self.couple.name}"
 
 
 class Availability(models.Model):

@@ -58,6 +58,7 @@
     h1, h2, h3, .page-title {
       color: var(--ke-brown);
     }
+    .card-header h1, .card-header h2, .card-header h3 { color: inherit; }
 
     /* Buttons */
     .btn-primary {
@@ -175,6 +176,12 @@
     </button>
     <div class="collapse navbar-collapse" id="navMenu">
       <ul class="navbar-nav ms-auto align-items-md-center gap-1">
+        <li class="nav-item">
+          <a class="nav-link {% if request.resolver_match.url_name == 'home' %}active{% endif %}"
+             href="{% url 'home' %}">
+            <i class="bi bi-envelope-heart me-1"></i>Uitnodigingen
+          </a>
+        </li>
         <li class="nav-item">
           <a class="nav-link {% if request.resolver_match.url_name == 'calendar' %}active{% endif %}"
              href="{% url 'calendar' %}">
