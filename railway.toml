@@ -1,0 +1,6 @@
+[build]
+buildCommand = "python manage.py collectstatic --noinput"
+
+[deploy]
+startCommand = "gunicorn core.wsgi"
+preDeployCommand = "python manage.py migrate && python manage.py seed_data"
